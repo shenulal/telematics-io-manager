@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { AuthUser } from '@/types/models';
 
 interface AuthContextType {
@@ -23,6 +23,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
+  // Use ref to track if user was previously logged in (to detect session expiry vs. initial load)
+  const wasLoggedInRef = useRef(false);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -32,13 +34,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (data.success && data.data) {
           setUser(data.data);
           setSessionExpired(false);
+          wasLoggedInRef.current = true;
         } else {
           setUser(null);
         }
       } else if (response.status === 401) {
-        // Session expired
-        if (user) {
+        // Only show session expired if user was previously logged in
+        if (wasLoggedInRef.current) {
           setSessionExpired(true);
+          wasLoggedInRef.current = false;
         }
         setUser(null);
       } else {
@@ -49,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   // Check if session is still valid - returns true if valid, false if expired
   const checkSession = useCallback(async (): Promise<boolean> => {
@@ -61,16 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return true;
         }
       }
-      // Session is expired
-      if (user) {
+      // Only mark session as expired if we got a 401 AND user was logged in
+      if (response.status === 401 && wasLoggedInRef.current) {
         setSessionExpired(true);
+        wasLoggedInRef.current = false;
         setUser(null);
+        return false;
       }
-      return false;
+      // For other errors, don't show session expired modal, just return false
+      return response.ok;
     } catch {
-      return false;
+      // Network errors - don't show session expired
+      return true; // Assume session is still valid on network error
     }
-  }, [user]);
+  }, []);
 
   const clearSessionExpired = useCallback(() => {
     setSessionExpired(false);
@@ -78,7 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refreshUser();
-  }, [refreshUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -87,14 +96,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success && data.data) {
         setUser(data.data.user);
+        setSessionExpired(false);
+        wasLoggedInRef.current = true;
         return { success: true };
       }
-      
+
       return { success: false, error: data.error || 'Login failed' };
     } catch {
       return { success: false, error: 'Network error' };
