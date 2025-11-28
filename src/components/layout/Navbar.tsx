@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Building2, Package, Cpu, ArrowRightLeft, Menu, X, Users, Shield, LogOut, ChevronDown, User, Key, ClipboardList } from 'lucide-react';
+import { Building2, Package, Cpu, ArrowRightLeft, Menu, X, Users, Shield, LogOut, ChevronDown, User, Key, ClipboardList, AlertTriangle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Modal, Input, Button } from '@/components/ui';
@@ -23,15 +23,40 @@ const adminNavigation = [
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, sessionExpired, checkSession, clearSessionExpired } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isSessionExpiredModalOpen, setIsSessionExpiredModalOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Show session expired modal when session expires
+  useEffect(() => {
+    if (sessionExpired) {
+      setIsSessionExpiredModalOpen(true);
+    }
+  }, [sessionExpired]);
+
+  // Handle navigation with session check
+  const handleNavClick = async (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const isValid = await checkSession();
+    if (isValid) {
+      router.push(href);
+    }
+    // If session is expired, the modal will be shown automatically via the useEffect
+  };
+
+  // Handle session expired logout
+  const handleSessionExpiredLogout = () => {
+    setIsSessionExpiredModalOpen(false);
+    clearSessionExpired();
+    router.push('/login');
+  };
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -117,7 +142,7 @@ export default function Navbar() {
               {mainNavigation.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 return (
-                  <Link key={item.name} href={item.href}
+                  <Link key={item.name} href={item.href} onClick={(e) => handleNavClick(e, item.href)}
                     className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                       isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}>
@@ -131,7 +156,7 @@ export default function Navbar() {
                   {adminNavigation.map((item) => {
                     const isActive = pathname.startsWith(item.href);
                     return (
-                      <Link key={item.name} href={item.href}
+                      <Link key={item.name} href={item.href} onClick={(e) => handleNavClick(e, item.href)}
                         className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                           isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         }`}>
@@ -189,7 +214,7 @@ export default function Navbar() {
             {mainNavigation.map((item) => {
               const isActive = pathname.startsWith(item.href);
               return (
-                <Link key={item.name} href={item.href} onClick={() => setIsMobileMenuOpen(false)}
+                <Link key={item.name} href={item.href} onClick={(e) => { setIsMobileMenuOpen(false); handleNavClick(e, item.href); }}
                   className={`flex items-center px-4 py-2 text-base font-medium ${
                     isActive ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}>
@@ -203,7 +228,7 @@ export default function Navbar() {
                 {adminNavigation.map((item) => {
                   const isActive = pathname.startsWith(item.href);
                   return (
-                    <Link key={item.name} href={item.href} onClick={() => setIsMobileMenuOpen(false)}
+                    <Link key={item.name} href={item.href} onClick={(e) => { setIsMobileMenuOpen(false); handleNavClick(e, item.href); }}
                       className={`flex items-center px-4 py-2 text-base font-medium ${
                         isActive ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}>
@@ -272,6 +297,23 @@ export default function Navbar() {
               {isChangingPassword ? 'Changing...' : 'Change Password'}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Session Expired Modal */}
+      <Modal isOpen={isSessionExpiredModalOpen} onClose={handleSessionExpiredLogout} title="Session Expired" size="sm">
+        <div className="text-center py-4">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-4">
+            <AlertTriangle className="h-8 w-8 text-amber-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Your session has expired</h3>
+          <p className="text-sm text-gray-500 mb-6">
+            For your security, you have been logged out due to inactivity. Please log in again to continue.
+          </p>
+          <Button onClick={handleSessionExpiredLogout} className="w-full">
+            <LogOut className="w-4 h-4 mr-2" />
+            Go to Login
+          </Button>
         </div>
       </Modal>
     </nav>
