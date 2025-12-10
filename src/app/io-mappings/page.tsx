@@ -718,8 +718,11 @@ export default function IOMappingsPage() {
                 label="Multiplier"
                 type="number"
                 step="any"
-                value={formData.Multiplier || ''}
-                onChange={(e) => setFormData({ ...formData, Multiplier: parseFloat(e.target.value) || undefined })}
+                value={formData.Multiplier ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, Multiplier: val === '' ? undefined : parseFloat(val) });
+                }}
                 error={validationErrors.Multiplier}
               />
             </div>
@@ -728,8 +731,11 @@ export default function IOMappingsPage() {
                 label="Offset"
                 type="number"
                 step="any"
-                value={formData.Offset || ''}
-                onChange={(e) => setFormData({ ...formData, Offset: parseFloat(e.target.value) || undefined })}
+                value={formData.Offset ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, Offset: val === '' ? undefined : parseFloat(val) });
+                }}
                 error={validationErrors.Offset}
               />
             </div>

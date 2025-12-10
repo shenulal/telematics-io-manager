@@ -109,25 +109,25 @@ export async function POST(request: NextRequest) {
     `;
     
     const result = await executeQuery<IOMapping>(query, {
-      VendorID: body.VendorID || null,
-      ProductID: body.ProductID || null,
+      VendorID: body.VendorID ?? null,
+      ProductID: body.ProductID ?? null,
       IOID: body.IOID,
-      IOCode: body.IOCode || null,
-      IOName: body.IOName || null,
-      Bytes: body.Bytes || null,
-      MinValue: body.MinValue || null,
-      MaxValue: body.MaxValue || null,
-      Multiplier: body.Multiplier || null,
-      Offset: body.Offset || null,
-      Unit: body.Unit || null,
-      ErrorValues: body.ErrorValues || null,
-      ConversionFormula: body.ConversionFormula || null,
-      Averaging: body.Averaging || null,
-      EventOnChange: body.EventOnChange || null,
-      EventOnHysterisis: body.EventOnHysterisis || null,
-      ParameterGroup: body.ParameterGroup || null,
-      Description: body.Description || null,
-      RawValueJson: body.RawValueJson || null
+      IOCode: body.IOCode ?? null,
+      IOName: body.IOName ?? null,
+      Bytes: body.Bytes ?? null,
+      MinValue: body.MinValue ?? null,
+      MaxValue: body.MaxValue ?? null,
+      Multiplier: body.Multiplier ?? null,
+      Offset: body.Offset ?? null,
+      Unit: body.Unit ?? null,
+      ErrorValues: body.ErrorValues ?? null,
+      ConversionFormula: body.ConversionFormula ?? null,
+      Averaging: body.Averaging ?? null,
+      EventOnChange: body.EventOnChange ?? null,
+      EventOnHysterisis: body.EventOnHysterisis ?? null,
+      ParameterGroup: body.ParameterGroup ?? null,
+      Description: body.Description ?? null,
+      RawValueJson: body.RawValueJson ?? null
     });
     
     return NextResponse.json({
