@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
 import { Vendor, VendorUpdate, ApiResponse } from '@/types/models';
+import { getAuthUser } from '@/lib/authMiddleware';
+import { createAuditLog, getClientIP, getUserAgent, sanitizeForAudit, ModuleNames, ActionTypes } from '@/lib/auditLog';
 
 // GET single vendor by ID
 export async function GET(
@@ -44,11 +46,20 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const user = await getAuthUser(request);
+
   try {
     const { id } = await params;
     const vendorId = parseInt(id);
     const body: VendorUpdate = await request.json();
-    
+
+    // Get old value for audit
+    const oldResult = await executeQuery<Vendor>(
+      `SELECT * FROM Vendor WHERE VendorID = @VendorID`,
+      { VendorID: vendorId }
+    );
+    const oldVendor = oldResult[0];
+
     const query = `
       UPDATE Vendor
       SET VendorName = @VendorName,
@@ -57,21 +68,35 @@ export async function PUT(
       OUTPUT INSERTED.*
       WHERE VendorID = @VendorID
     `;
-    
+
     const result = await executeQuery<Vendor>(query, {
       VendorID: vendorId,
       VendorName: body.VendorName,
       Country: body.Country || null,
       Website: body.Website || null
     });
-    
+
     if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Vendor not found' } as ApiResponse<null>,
         { status: 404 }
       );
     }
-    
+
+    // Audit log
+    await createAuditLog({
+      UserID: user?.userId,
+      Username: user?.username,
+      Action: ActionTypes.UPDATE,
+      Module: ModuleNames.VENDORS,
+      RecordID: id,
+      RecordDescription: `Updated vendor: ${body.VendorName}`,
+      OldValue: oldVendor ? sanitizeForAudit(oldVendor as unknown as Record<string, unknown>) : undefined,
+      NewValue: sanitizeForAudit(body as unknown as Record<string, unknown>),
+      IPAddress: getClientIP(request.headers),
+      UserAgent: getUserAgent(request.headers),
+    });
+
     return NextResponse.json({
       success: true,
       data: result[0],
@@ -91,25 +116,47 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const user = await getAuthUser(request);
+
   try {
     const { id } = await params;
     const vendorId = parseInt(id);
-    
+
+    // Get old value for audit before delete
+    const oldResult = await executeQuery<Vendor>(
+      `SELECT * FROM Vendor WHERE VendorID = @VendorID`,
+      { VendorID: vendorId }
+    );
+    const oldVendor = oldResult[0];
+
     const query = `
       DELETE FROM Vendor
       OUTPUT DELETED.*
       WHERE VendorID = @VendorID
     `;
-    
+
     const result = await executeQuery<Vendor>(query, { VendorID: vendorId });
-    
+
     if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Vendor not found' } as ApiResponse<null>,
         { status: 404 }
       );
     }
-    
+
+    // Audit log
+    await createAuditLog({
+      UserID: user?.userId,
+      Username: user?.username,
+      Action: ActionTypes.DELETE,
+      Module: ModuleNames.VENDORS,
+      RecordID: id,
+      RecordDescription: `Deleted vendor: ${oldVendor?.VendorName || id}`,
+      OldValue: oldVendor ? sanitizeForAudit(oldVendor as unknown as Record<string, unknown>) : undefined,
+      IPAddress: getClientIP(request.headers),
+      UserAgent: getUserAgent(request.headers),
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Vendor deleted successfully'

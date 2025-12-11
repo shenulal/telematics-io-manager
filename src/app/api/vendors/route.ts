@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeQuery, sql } from '@/lib/db';
+import { executeQuery } from '@/lib/db';
 import { Vendor, VendorCreate, ApiResponse } from '@/types/models';
+import { getAuthUser } from '@/lib/authMiddleware';
+import { createAuditLog, getClientIP, getUserAgent, sanitizeForAudit, ModuleNames, ActionTypes } from '@/lib/auditLog';
 
 // GET all vendors
 export async function GET(request: NextRequest) {
@@ -56,28 +58,43 @@ export async function GET(request: NextRequest) {
 
 // POST create new vendor
 export async function POST(request: NextRequest) {
+  const user = await getAuthUser(request);
+
   try {
     const body: VendorCreate = await request.json();
-    
+
     if (!body.VendorName) {
       return NextResponse.json(
         { success: false, error: 'VendorName is required' } as ApiResponse<null>,
         { status: 400 }
       );
     }
-    
+
     const query = `
       INSERT INTO Vendor (VendorName, Country, Website)
       OUTPUT INSERTED.*
       VALUES (@VendorName, @Country, @Website)
     `;
-    
+
     const result = await executeQuery<Vendor>(query, {
       VendorName: body.VendorName,
       Country: body.Country || null,
       Website: body.Website || null
     });
-    
+
+    // Audit log
+    await createAuditLog({
+      UserID: user?.userId,
+      Username: user?.username,
+      Action: ActionTypes.CREATE,
+      Module: ModuleNames.VENDORS,
+      RecordID: result[0].VendorID.toString(),
+      RecordDescription: `Created vendor: ${body.VendorName}`,
+      NewValue: sanitizeForAudit(body as unknown as Record<string, unknown>),
+      IPAddress: getClientIP(request.headers),
+      UserAgent: getUserAgent(request.headers),
+    });
+
     return NextResponse.json({
       success: true,
       data: result[0],

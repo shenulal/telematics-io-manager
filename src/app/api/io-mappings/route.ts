@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
 import { IOMapping, IOMappingCreate, ApiResponse } from '@/types/models';
+import { getAuthUser } from '@/lib/authMiddleware';
+import { createAuditLog, getClientIP, getUserAgent, sanitizeForAudit, ModuleNames, ActionTypes } from '@/lib/auditLog';
 
 // GET all IO mappings
 export async function GET(request: NextRequest) {
@@ -88,16 +90,18 @@ export async function GET(request: NextRequest) {
 
 // POST create new IO mapping
 export async function POST(request: NextRequest) {
+  const user = await getAuthUser(request);
+
   try {
     const body: IOMappingCreate = await request.json();
-    
+
     if (!body.IOID) {
       return NextResponse.json(
         { success: false, error: 'IOID is required' } as ApiResponse<null>,
         { status: 400 }
       );
     }
-    
+
     const query = `
       INSERT INTO IOMapping (VendorID, ProductID, IOID, IOCode, IOName, Bytes,
         MinValue, MaxValue, Multiplier, [Offset], Unit, ErrorValues, ConversionFormula,
@@ -107,7 +111,7 @@ export async function POST(request: NextRequest) {
         @MinValue, @MaxValue, @Multiplier, @Offset, @Unit, @ErrorValues, @ConversionFormula,
         @Averaging, @EventOnChange, @EventOnHysterisis, @ParameterGroup, @Description, @RawValueJson)
     `;
-    
+
     const result = await executeQuery<IOMapping>(query, {
       VendorID: body.VendorID ?? null,
       ProductID: body.ProductID ?? null,
@@ -129,7 +133,20 @@ export async function POST(request: NextRequest) {
       Description: body.Description ?? null,
       RawValueJson: body.RawValueJson ?? null
     });
-    
+
+    // Audit log
+    await createAuditLog({
+      UserID: user?.userId,
+      Username: user?.username,
+      Action: ActionTypes.CREATE,
+      Module: ModuleNames.IO_MAPPING,
+      RecordID: result[0].MappingID.toString(),
+      RecordDescription: `Created IO Mapping: ${body.IOName || body.IOID}`,
+      NewValue: sanitizeForAudit(body as unknown as Record<string, unknown>),
+      IPAddress: getClientIP(request.headers),
+      UserAgent: getUserAgent(request.headers),
+    });
+
     return NextResponse.json({
       success: true,
       data: result[0],

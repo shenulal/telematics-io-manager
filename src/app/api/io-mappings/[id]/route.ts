@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
 import { IOMapping, IOMappingUpdate, ApiResponse } from '@/types/models';
+import { getAuthUser } from '@/lib/authMiddleware';
+import { createAuditLog, getClientIP, getUserAgent, sanitizeForAudit, ModuleNames, ActionTypes } from '@/lib/auditLog';
 
 // GET single IO mapping by ID
 export async function GET(
@@ -51,11 +53,20 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const user = await getAuthUser(request);
+
   try {
     const { id } = await params;
     const mappingId = parseInt(id);
     const body: IOMappingUpdate = await request.json();
-    
+
+    // Get old value for audit
+    const oldResult = await executeQuery<IOMapping>(
+      `SELECT * FROM IOMapping WHERE MappingID = @MappingID`,
+      { MappingID: mappingId }
+    );
+    const oldMapping = oldResult[0];
+
     const query = `
       UPDATE IOMapping
       SET VendorID = @VendorID, ProductID = @ProductID, IOID = @IOID,
@@ -68,7 +79,7 @@ export async function PUT(
       OUTPUT INSERTED.*
       WHERE MappingID = @MappingID
     `;
-    
+
     const result = await executeQuery<IOMapping>(query, {
       MappingID: mappingId,
       VendorID: body.VendorID ?? null,
@@ -91,14 +102,28 @@ export async function PUT(
       Description: body.Description ?? null,
       RawValueJson: body.RawValueJson ?? null
     });
-    
+
     if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'IO Mapping not found' } as ApiResponse<null>,
         { status: 404 }
       );
     }
-    
+
+    // Audit log
+    await createAuditLog({
+      UserID: user?.userId,
+      Username: user?.username,
+      Action: ActionTypes.UPDATE,
+      Module: ModuleNames.IO_MAPPING,
+      RecordID: id,
+      RecordDescription: `Updated IO Mapping: ${body.IOName || id}`,
+      OldValue: oldMapping ? sanitizeForAudit(oldMapping as unknown as Record<string, unknown>) : undefined,
+      NewValue: sanitizeForAudit(body as unknown as Record<string, unknown>),
+      IPAddress: getClientIP(request.headers),
+      UserAgent: getUserAgent(request.headers),
+    });
+
     return NextResponse.json({
       success: true,
       data: result[0],
@@ -118,20 +143,42 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const user = await getAuthUser(request);
+
   try {
     const { id } = await params;
     const mappingId = parseInt(id);
-    
+
+    // Get old value for audit before delete
+    const oldResult = await executeQuery<IOMapping>(
+      `SELECT * FROM IOMapping WHERE MappingID = @MappingID`,
+      { MappingID: mappingId }
+    );
+    const oldMapping = oldResult[0];
+
     const query = `DELETE FROM IOMapping OUTPUT DELETED.* WHERE MappingID = @MappingID`;
     const result = await executeQuery<IOMapping>(query, { MappingID: mappingId });
-    
+
     if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'IO Mapping not found' } as ApiResponse<null>,
         { status: 404 }
       );
     }
-    
+
+    // Audit log
+    await createAuditLog({
+      UserID: user?.userId,
+      Username: user?.username,
+      Action: ActionTypes.DELETE,
+      Module: ModuleNames.IO_MAPPING,
+      RecordID: id,
+      RecordDescription: `Deleted IO Mapping: ${oldMapping?.IOName || id}`,
+      OldValue: oldMapping ? sanitizeForAudit(oldMapping as unknown as Record<string, unknown>) : undefined,
+      IPAddress: getClientIP(request.headers),
+      UserAgent: getUserAgent(request.headers),
+    });
+
     return NextResponse.json({
       success: true,
       message: 'IO Mapping deleted successfully'

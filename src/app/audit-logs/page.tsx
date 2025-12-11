@@ -9,6 +9,11 @@ import { buildQueryString, fetchApi } from '@/hooks/useApi';
 const MODULES = ['Vendors', 'Products', 'IOUniversal', 'IOMapping', 'Users', 'Roles', 'Auth', 'Audit'];
 const ACTIONS = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'LOGIN_FAILED', 'EXPORT', 'IMPORT'];
 
+interface UserOption {
+  UserID: number;
+  Username: string;
+}
+
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,6 +23,8 @@ export default function AuditLogsPage() {
   const [search, setSearch] = useState('');
   const [moduleFilter, setModuleFilter] = useState('');
   const [actionFilter, setActionFilter] = useState('');
+  const [userFilter, setUserFilter] = useState('');
+  const [users, setUsers] = useState<UserOption[]>([]);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [viewingLog, setViewingLog] = useState<AuditLog | null>(null);
@@ -26,10 +33,11 @@ export default function AuditLogsPage() {
   const fetchLogs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const query = buildQueryString({ 
-        page: currentPage, pageSize, search, 
+      const query = buildQueryString({
+        page: currentPage, pageSize, search,
         module: moduleFilter, action: actionFilter,
-        dateFrom, dateTo 
+        userId: userFilter,
+        dateFrom, dateTo
       });
       const response = await fetchApi<AuditLog[]>(`/api/audit-logs${query}`);
       if (response.success && response.data) {
@@ -39,12 +47,22 @@ export default function AuditLogsPage() {
       }
     } catch (error) { console.error('Error fetching audit logs:', error); }
     finally { setIsLoading(false); }
-  }, [currentPage, search, moduleFilter, actionFilter, dateFrom, dateTo]);
+  }, [currentPage, search, moduleFilter, actionFilter, userFilter, dateFrom, dateTo]);
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const response = await fetchApi<UserOption[]>(`/api/users?pageSize=1000`);
+      if (response.success && response.data) {
+        setUsers(response.data);
+      }
+    } catch (error) { console.error('Error fetching users:', error); }
+  }, []);
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setCurrentPage(1); fetchLogs(); };
-  const clearFilters = () => { setSearch(''); setModuleFilter(''); setActionFilter(''); setDateFrom(''); setDateTo(''); setCurrentPage(1); };
+  const clearFilters = () => { setSearch(''); setModuleFilter(''); setActionFilter(''); setUserFilter(''); setDateFrom(''); setDateTo(''); setCurrentPage(1); };
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '-';
@@ -95,18 +113,19 @@ export default function AuditLogsPage() {
 
       <Card>
         <form onSubmit={handleSearch} className="space-y-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Input placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
             <SearchableSelect label="" value={moduleFilter} onChange={setModuleFilter} options={[{ value: '', label: 'All Modules' }, ...MODULES.map(m => ({ value: m, label: m }))]} />
             <SearchableSelect label="" value={actionFilter} onChange={setActionFilter} options={[{ value: '', label: 'All Actions' }, ...ACTIONS.map(a => ({ value: a, label: a }))]} />
+            <SearchableSelect label="" value={userFilter} onChange={setUserFilter} options={[{ value: '', label: 'All Users' }, ...users.map(u => ({ value: u.UserID.toString(), label: u.Username }))]} />
             <div className="flex gap-2">
               <Button type="submit"><Search className="w-4 h-4" /></Button>
               <Button type="button" variant="secondary" onClick={clearFilters}><Filter className="w-4 h-4" /></Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Input type="date" label="From" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-            <Input type="date" label="To" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <Input type="date" label="Date From" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            <Input type="date" label="Date To" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           </div>
         </form>
 

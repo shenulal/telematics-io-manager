@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
 import { IOUniversal, IOUniversalCreate, ApiResponse } from '@/types/models';
+import { getAuthUser } from '@/lib/authMiddleware';
+import { createAuditLog, getClientIP, getUserAgent, sanitizeForAudit, ModuleNames, ActionTypes } from '@/lib/auditLog';
 
 // GET all IOUniversal entries
 export async function GET(request: NextRequest) {
@@ -65,33 +67,35 @@ export async function GET(request: NextRequest) {
 
 // POST create new IOUniversal
 export async function POST(request: NextRequest) {
+  const user = await getAuthUser(request);
+
   try {
     const body: IOUniversalCreate = await request.json();
-    
+
     if (!body.IOID) {
       return NextResponse.json(
         { success: false, error: 'IOID is required' } as ApiResponse<null>,
         { status: 400 }
       );
     }
-    
+
     // Check if IOID already exists
     const existsQuery = `SELECT IOID FROM IOUniversal WHERE IOID = @IOID`;
     const exists = await executeQuery<IOUniversal>(existsQuery, { IOID: body.IOID });
-    
+
     if (exists.length > 0) {
       return NextResponse.json(
         { success: false, error: 'IOID already exists' } as ApiResponse<null>,
         { status: 400 }
       );
     }
-    
+
     const query = `
       INSERT INTO IOUniversal (IOID, IOName, IOCategory, DataType, Unit, Description)
       OUTPUT INSERTED.*
       VALUES (@IOID, @IOName, @IOCategory, @DataType, @Unit, @Description)
     `;
-    
+
     const result = await executeQuery<IOUniversal>(query, {
       IOID: body.IOID,
       IOName: body.IOName || null,
@@ -100,7 +104,20 @@ export async function POST(request: NextRequest) {
       Unit: body.Unit || null,
       Description: body.Description || null
     });
-    
+
+    // Audit log
+    await createAuditLog({
+      UserID: user?.userId,
+      Username: user?.username,
+      Action: ActionTypes.CREATE,
+      Module: ModuleNames.IO_UNIVERSAL,
+      RecordID: body.IOID.toString(),
+      RecordDescription: `Created IO Universal: ${body.IOName || body.IOID}`,
+      NewValue: sanitizeForAudit(body as unknown as Record<string, unknown>),
+      IPAddress: getClientIP(request.headers),
+      UserAgent: getUserAgent(request.headers),
+    });
+
     return NextResponse.json({
       success: true,
       data: result[0],
