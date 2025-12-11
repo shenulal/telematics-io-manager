@@ -51,8 +51,8 @@ export function ImportExportBar({
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         {/* Export Buttons */}
-        <div className="flex items-center gap-1 border-r pr-3 mr-1">
-          <span className="text-xs text-gray-500 mr-1">Export:</span>
+        <div className="flex items-center gap-1 border-r border-gray-300 dark:border-gray-600 pr-3 mr-1">
+          <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">Export:</span>
           <Button
             variant="secondary"
             size="sm"
@@ -77,7 +77,7 @@ export function ImportExportBar({
 
         {/* Import Section */}
         <div className="flex items-center gap-1">
-          <span className="text-xs text-gray-500 mr-1">Import:</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">Import:</span>
           <Button
             variant="secondary"
             size="sm"
@@ -112,8 +112,8 @@ export function ImportExportBar({
         <div
           className={`flex items-center justify-between px-3 py-2 rounded text-sm ${
             importStatus.type === 'success'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
+              ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+              : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
           }`}
         >
           <span>{importStatus.message}</span>

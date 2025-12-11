@@ -49,10 +49,10 @@ function BarChartSimple({ data, labels, colors }: { data: number[]; labels: stri
       {data.map((value, i) => (
         <div key={labels[i]} className="flex flex-col items-center flex-1">
           <div className="w-full flex flex-col items-center">
-            <span className="text-sm font-semibold text-gray-700 mb-1">{value}</span>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{value}</span>
             <div className={`w-full max-w-[60px] rounded-t-lg ${colors[i]} transition-all duration-500`} style={{ height: `${(value / max) * 100}px` }} />
           </div>
-          <span className="text-xs text-gray-500 mt-2 text-center">{labels[i]}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">{labels[i]}</span>
         </div>
       ))}
     </div>
@@ -102,14 +102,14 @@ function DonutChart({ data, labels, colors }: { data: number[]; labels: string[]
           })}
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xl font-bold text-gray-700">{total}</span>
+          <span className="text-xl font-bold text-gray-700 dark:text-gray-300">{total}</span>
         </div>
       </div>
       <div className="space-y-2">
         {labels.map((label, i) => (
           <div key={label} className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${colors[i]}`} />
-            <span className="text-sm text-gray-600">{label}: {data[i]}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{label}: {data[i]}</span>
           </div>
         ))}
       </div>
@@ -119,12 +119,12 @@ function DonutChart({ data, labels, colors }: { data: number[]; labels: string[]
 
 // Activity indicator component
 function ActivityIndicator({ value, label, trend }: { value: number; label: string; trend: 'up' | 'down' | 'neutral' }) {
-  const trendColors = { up: 'text-green-500', down: 'text-red-500', neutral: 'text-gray-500' };
+  const trendColors = { up: 'text-green-500', down: 'text-red-500', neutral: 'text-gray-500 dark:text-gray-400' };
   return (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
       <div>
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
+        <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{value}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
       </div>
       <div className={`flex items-center ${trendColors[trend]}`}>
         <TrendingUp className={`w-5 h-5 ${trend === 'down' ? 'rotate-180' : ''}`} />
@@ -198,8 +198,8 @@ export default function Home() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">Welcome to the Telematics IO Manager.</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">Welcome to the Telematics IO Manager.</p>
       </div>
 
       {/* Main Stats Cards */}
@@ -212,10 +212,10 @@ export default function Home() {
                   <item.icon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     {loading ? '...' : stats[item.statKey]}
                   </p>
-                  <p className="text-sm text-gray-500">{item.title}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{item.title}</p>
                 </div>
               </div>
             </Card>
@@ -234,10 +234,10 @@ export default function Home() {
                     <item.icon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       {loading ? '...' : stats[item.statKey]}
                     </p>
-                    <p className="text-sm text-gray-500">{item.title}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{item.title}</p>
                   </div>
                 </div>
               </Card>
@@ -248,17 +248,17 @@ export default function Home() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Data Distribution" actions={<BarChart3 className="w-5 h-5 text-gray-400" />}>
+        <Card title="Data Distribution" actions={<BarChart3 className="w-5 h-5 text-gray-400 dark:text-gray-500" />}>
           {loading ? (
-            <div className="h-40 flex items-center justify-center text-gray-400">Loading...</div>
+            <div className="h-40 flex items-center justify-center text-gray-400 dark:text-gray-500">Loading...</div>
           ) : (
             <BarChartSimple data={chartData} labels={chartLabels} colors={chartColors} />
           )}
         </Card>
 
-        <Card title="Overview" actions={<PieChart className="w-5 h-5 text-gray-400" />}>
+        <Card title="Overview" actions={<PieChart className="w-5 h-5 text-gray-400 dark:text-gray-500" />}>
           {loading ? (
-            <div className="h-40 flex items-center justify-center text-gray-400">Loading...</div>
+            <div className="h-40 flex items-center justify-center text-gray-400 dark:text-gray-500">Loading...</div>
           ) : (
             <DonutChart data={chartData} labels={chartLabels} colors={chartColors} />
           )}
@@ -266,7 +266,7 @@ export default function Home() {
       </div>
 
       {/* Activity Summary */}
-      <Card title="System Summary" actions={<Activity className="w-5 h-5 text-gray-400" />}>
+      <Card title="System Summary" actions={<Activity className="w-5 h-5 text-gray-400 dark:text-gray-500" />}>
         <div className={`grid grid-cols-1 md:grid-cols-2 ${isAdmin ? 'lg:grid-cols-4 xl:grid-cols-7' : 'lg:grid-cols-4'} gap-4`}>
           <ActivityIndicator value={stats.vendors} label="Total Vendors" trend="up" />
           <ActivityIndicator value={stats.products} label="Total Products" trend="up" />

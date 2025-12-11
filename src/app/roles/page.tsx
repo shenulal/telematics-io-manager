@@ -146,7 +146,7 @@ export default function RolesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Roles</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Roles</h1>
         <Button onClick={openCreateModal}><Plus className="w-4 h-4 mr-2" />Add Role</Button>
       </div>
 

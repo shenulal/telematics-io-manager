@@ -129,13 +129,13 @@ export default function Navbar() {
   const isAdmin = user?.Roles?.some(role => role === 'Administrator') || false;
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link href="/" className="flex items-center">
               <Cpu className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">Telematics IO Manager</span>
+              <span className="ml-2 text-xl font-bold text-gray-900 dark:text-gray-100">Telematics IO Manager</span>
             </Link>
 
             <div className="hidden sm:ml-8 sm:flex sm:space-x-2">
@@ -144,7 +144,7 @@ export default function Navbar() {
                 return (
                   <Link key={item.name} href={item.href} onClick={(e) => handleNavClick(e, item.href)}
                     className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                      isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      isActive ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}>
                     <item.icon className="w-4 h-4 mr-2" />{item.name}
                   </Link>
@@ -152,13 +152,13 @@ export default function Navbar() {
               })}
               {isAdmin && (
                 <>
-                  <div className="border-l border-gray-200 mx-2" />
+                  <div className="border-l border-gray-200 dark:border-gray-600 mx-2" />
                   {adminNavigation.map((item) => {
                     const isActive = pathname.startsWith(item.href);
                     return (
                       <Link key={item.name} href={item.href} onClick={(e) => handleNavClick(e, item.href)}
                         className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                          isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                          isActive ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}>
                         <item.icon className="w-4 h-4 mr-2" />{item.name}
                       </Link>
@@ -173,23 +173,23 @@ export default function Navbar() {
           <div className="hidden sm:flex sm:items-center">
             <div className="relative" ref={userMenuRef}>
               <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md">
                 <User className="w-5 h-5" />
                 <span>{user?.FirstName || user?.Username}</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
-                  <div className="px-4 py-2 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">{user?.Username}</p>
-                    <p className="text-xs text-gray-500">{user?.Roles?.join(', ')}</p>
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                  <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.Username}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{user?.Roles?.join(', ')}</p>
                   </div>
                   <button onClick={openChangePassword}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                     <Key className="w-4 h-4" />Change Password
                   </button>
                   <button onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
                     <LogOut className="w-4 h-4" />Logout
                   </button>
                 </div>
@@ -200,7 +200,7 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <div className="flex items-center sm:hidden">
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
@@ -209,14 +209,14 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="sm:hidden border-t border-gray-200">
+        <div className="sm:hidden border-t border-gray-200 dark:border-gray-700">
           <div className="pt-2 pb-3 space-y-1">
             {mainNavigation.map((item) => {
               const isActive = pathname.startsWith(item.href);
               return (
                 <Link key={item.name} href={item.href} onClick={(e) => { setIsMobileMenuOpen(false); handleNavClick(e, item.href); }}
                   className={`flex items-center px-4 py-2 text-base font-medium ${
-                    isActive ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    isActive ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-l-4 border-blue-700' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
                   }`}>
                   <item.icon className="w-5 h-5 mr-3" />{item.name}
                 </Link>
@@ -224,13 +224,13 @@ export default function Navbar() {
             })}
             {isAdmin && (
               <>
-                <div className="border-t border-gray-200 my-2" />
+                <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
                 {adminNavigation.map((item) => {
                   const isActive = pathname.startsWith(item.href);
                   return (
                     <Link key={item.name} href={item.href} onClick={(e) => { setIsMobileMenuOpen(false); handleNavClick(e, item.href); }}
                       className={`flex items-center px-4 py-2 text-base font-medium ${
-                        isActive ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        isActive ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-l-4 border-blue-700' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
                       }`}>
                       <item.icon className="w-5 h-5 mr-3" />{item.name}
                     </Link>
@@ -238,17 +238,17 @@ export default function Navbar() {
                 })}
               </>
             )}
-            <div className="border-t border-gray-200 my-2" />
+            <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
             <div className="px-4 py-2">
-              <p className="text-sm font-medium text-gray-900">{user?.Username}</p>
-              <p className="text-xs text-gray-500">{user?.Roles?.join(', ')}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.Username}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{user?.Roles?.join(', ')}</p>
             </div>
             <button onClick={() => { setIsMobileMenuOpen(false); openChangePassword(); }}
-              className="w-full flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">
+              className="w-full flex items-center px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
               <Key className="w-5 h-5 mr-3" />Change Password
             </button>
             <button onClick={handleLogout}
-              className="w-full flex items-center px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50">
+              className="w-full flex items-center px-4 py-2 text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
               <LogOut className="w-5 h-5 mr-3" />Logout
             </button>
           </div>
@@ -259,12 +259,12 @@ export default function Navbar() {
       <Modal isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} title="Change Password" size="sm">
         <div className="space-y-4">
           {passwordError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
               {passwordError}
             </div>
           )}
           {passwordSuccess && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+            <div className="p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-300 text-sm">
               {passwordSuccess}
             </div>
           )}
@@ -303,11 +303,11 @@ export default function Navbar() {
       {/* Session Expired Modal */}
       <Modal isOpen={isSessionExpiredModalOpen} onClose={handleSessionExpiredLogout} title="Session Expired" size="sm">
         <div className="text-center py-4">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-4">
-            <AlertTriangle className="h-8 w-8 text-amber-600" />
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-900/30 mb-4">
+            <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Your session has expired</h3>
-          <p className="text-sm text-gray-500 mb-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Your session has expired</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
             For your security, you have been logged out due to inactivity. Please log in again to continue.
           </p>
           <Button onClick={handleSessionExpiredLogout} className="w-full">

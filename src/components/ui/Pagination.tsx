@@ -54,7 +54,7 @@ export default function Pagination({
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
+    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
       <div className="flex-1 flex justify-between sm:hidden">
         <Button
           variant="secondary"
@@ -73,18 +73,18 @@ export default function Pagination({
           Next
         </Button>
       </div>
-      
+
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
           {totalItems !== undefined && (
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
               Showing <span className="font-medium">{startItem}</span> to{' '}
               <span className="font-medium">{endItem}</span> of{' '}
               <span className="font-medium">{totalItems}</span> results
             </p>
           )}
         </div>
-        
+
         <nav className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -94,7 +94,7 @@ export default function Pagination({
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          
+
           {getPageNumbers().map((page, idx) => (
             typeof page === 'number' ? (
               <Button
@@ -106,10 +106,10 @@ export default function Pagination({
                 {page}
               </Button>
             ) : (
-              <span key={idx} className="px-2 text-gray-500">{page}</span>
+              <span key={idx} className="px-2 text-gray-500 dark:text-gray-400">{page}</span>
             )
           ))}
-          
+
           <Button
             variant="ghost"
             size="sm"

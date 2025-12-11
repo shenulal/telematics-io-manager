@@ -151,7 +151,7 @@ export default function VendorsPage() {
     { key: 'VendorName', header: 'Vendor Name' },
     { key: 'Country', header: 'Country' },
     { key: 'Website', header: 'Website', render: (v) => v.Website ? (
-      <a href={v.Website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+      <a href={v.Website} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
         {v.Website}
       </a>
     ) : '-' },
@@ -160,7 +160,7 @@ export default function VendorsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Vendors</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Vendors</h1>
         <Button onClick={openCreateModal}><Plus className="w-4 h-4 mr-2" />Add Vendor</Button>
       </div>
 
